@@ -5,6 +5,8 @@ enum Tokens {
 	Prec,
 	Bool,
     String,
+    True,
+    False,
     // Keywords
 	Function,
     Return,
@@ -22,6 +24,7 @@ enum Tokens {
     Greater,
     Less,
     // Symbols
+    Assignment,
     LeftParen,
 	RightParen,
 	LeftBrace,
@@ -64,12 +67,66 @@ fn is_operator(token: Tokens) -> bool {
     }
 }
 
+fn is_whitespace(token: Tokens) -> bool {
+    match token {
+        Tokens::Tab | Tokens::Space | Tokens::Newline => true,
+        _ => false,
+    }
+}
+
+fn tokenize(part: &str) -> Tokens {
+    match part {
+        "{" => Tokens::LeftBrace,
+        "}" => Tokens::RightBrace,
+        "[" => Tokens::LeftBracket,
+        "]" => Tokens::RightBracket,
+        "(" => Tokens::LeftParen,
+        ")" => Tokens::RightParen,
+        "." => Tokens::Dot,
+        "," => Tokens::Comma,
+        "=" => Tokens::Assignment,
+
+        "int" => Tokens::Int,
+        "char" => Tokens::Char,
+        "bool" => Tokens::Bool,
+        "string" => Tokens::String,
+        "true" => Tokens::True,
+        "false" => Tokens::False,
+
+        "fun" => Tokens::Function,
+        "return" => Tokens::Return,
+        "while" => Tokens::While,
+        "for" => Tokens::For,
+        "if" => Tokens::If,
+        "else" => Tokens::Else,
+
+		"+" => Tokens::Plus,
+		"-" => Tokens::Minus,
+		"*" => Tokens::Star,
+		"/" => Tokens::Slash,
+		"^" => Tokens::Carrot,
+		">" => Tokens::Greater,
+		"<" => Tokens::Less,
+
+        " " => Tokens::Space,
+        "\t" => Tokens::Tab,
+        "\n" => Tokens::Newline,
+        _ => Tokens::Identifier,
+    }
+}
+
 struct Lexer;
 impl Lexer {
     fn lex(&self) {
         println!();
     }
 }
+
+struct Token {
+    part: String,
+    token: Tokens
+}
+
 
 fn main() {
     let lexer = Lexer;
