@@ -46,6 +46,11 @@ enum Tokens {
 	None,
 }
 
+struct Token {
+    part: String,
+    token: Tokens
+}
+
 fn is_symbol(token: Tokens) -> bool {
     match token {
         Tokens::LeftBracket | Tokens::RightBracket  |
@@ -74,8 +79,8 @@ fn is_whitespace(token: Tokens) -> bool {
     }
 }
 
-fn tokenize(part: &str) -> Tokens {
-    match part {
+fn tokenize(part: &str) -> Token {
+    let token = match part {
         "{" => Tokens::LeftBrace,
         "}" => Tokens::RightBrace,
         "[" => Tokens::LeftBracket,
@@ -112,23 +117,17 @@ fn tokenize(part: &str) -> Tokens {
         "\t" => Tokens::Tab,
         "\n" => Tokens::Newline,
         _ => Tokens::Identifier,
-    }
-}
+    };
 
-struct Lexer;
-impl Lexer {
-    fn lex(&self) {
-        println!();
-    }
-}
-
-struct Token {
-    part: String,
-    token: Tokens
+    let part = String::from(part);
+    return Token {part, token}
 }
 
 
 fn main() {
-    let lexer = Lexer;
-    lexer.lex();
+    let input: [&str; 3] = ["Hello", "+", "int"];
+
+    for item in input.iter() {
+        println!("{}", tokenize(item).part);
+    }
 }
