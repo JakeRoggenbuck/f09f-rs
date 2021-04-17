@@ -62,7 +62,8 @@ fn is_token_symbol(token: Tokens) -> bool {
         Tokens::LeftBrace   | Tokens::RightBrace    |
         Tokens::LeftParen   | Tokens::RightParen    |
         Tokens::Dot         | Tokens::Comma         |
-        Tokens::Colon       | Tokens::Semicolon => true,
+        Tokens::Colon       | Tokens::Semicolon     |
+        Tokens::Assignment => true,
         _ => false,
     }
 }
@@ -88,7 +89,7 @@ fn is_char_symbol(ch: char) -> bool {
     match ch {
         '[' | ']' | '{' | '}' |
         '(' | ')' | '.' | ',' |
-        ':' | ';' => true,
+        ':' | ';' | '=' => true,
         _ => false,
     }
 }
@@ -107,6 +108,23 @@ fn is_char_whitespace(ch: char) -> bool {
         '\t' | ' ' | '\n' => true,
         _ => false,
     }
+}
+
+fn is_char_numeric(ch: char) -> bool {
+    return ch.is_digit(10);
+}
+
+
+fn begins_token(prev: char, cur: char) -> bool {
+    if is_char_whitespace(prev) { return true; }
+    if is_char_whitespace(cur) { return false; }
+    return false;
+}
+
+fn ends_token(cur: char, next: char) -> bool {
+    if is_char_whitespace(cur) { return false; }
+    if is_char_whitespace(next) { return true; }
+    return false;
 }
 
 fn tokenize(part: &str) -> Token {
@@ -153,6 +171,15 @@ fn tokenize(part: &str) -> Token {
     return Token {part, token}
 }
 
+fn lexer(contents: String) {
+    for ch in contents.chars() {
+        if is_char_symbol(ch) || is_char_operator(ch) {
+            let tok = tokenize(&ch.to_string());
+            println!("{:?} {}", tok.token, tok.part);
+        }
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -165,7 +192,5 @@ fn main() {
     let contents = fs::read_to_string(filename)
         .expect("Something went wrong reading the file");
 
-    for ch in contents.chars() {
-        println!("{}", ch);
-    }
+    lexer(contents);
 }
