@@ -56,7 +56,7 @@ struct Token {
     token: Tokens
 }
 
-fn is_symbol(token: Tokens) -> bool {
+fn is_token_symbol(token: Tokens) -> bool {
     match token {
         Tokens::LeftBracket | Tokens::RightBracket  |
         Tokens::LeftBrace   | Tokens::RightBrace    |
@@ -67,7 +67,7 @@ fn is_symbol(token: Tokens) -> bool {
     }
 }
 
-fn is_operator(token: Tokens) -> bool {
+fn is_token_operator(token: Tokens) -> bool {
     match token {
         Tokens::Plus    | Tokens::Minus     |
         Tokens::Star    | Tokens::Slash     |
@@ -77,9 +77,34 @@ fn is_operator(token: Tokens) -> bool {
     }
 }
 
-fn is_whitespace(token: Tokens) -> bool {
+fn is_token_whitespace(token: Tokens) -> bool {
     match token {
         Tokens::Tab | Tokens::Space | Tokens::Newline => true,
+        _ => false,
+    }
+}
+
+fn is_char_symbol(ch: char) -> bool {
+    match ch {
+        '[' | ']' | '{' | '}' |
+        '(' | ')' | '.' | ',' |
+        ':' | ';' => true,
+        _ => false,
+    }
+}
+
+
+fn is_char_operator(ch: char) -> bool {
+    match ch {
+        '+' | '-' | '*' | '/' |
+        '^' | '>' | '<' => true,
+        _ => false,
+    }
+}
+
+fn is_char_whitespace(ch: char) -> bool {
+    match ch {
+        '\t' | ' ' | '\n' => true,
         _ => false,
     }
 }
@@ -131,18 +156,16 @@ fn tokenize(part: &str) -> Token {
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    if (args.len() == 1) {
+    if args.len() == 1 {
         eprintln!("Error: Please include a file");
         process::exit(0);
     }
     let filename = &args[1];
 
-    println!("In file {}", filename);
+    let contents = fs::read_to_string(filename)
+        .expect("Something went wrong reading the file");
 
-    let input: [&str; 3] = ["Hello", "+", "int"];
-
-    for item in input.iter() {
-        let current_token = tokenize(item);
-        println!("{:?}: {}", current_token.token, current_token.part);
+    for ch in contents.chars() {
+        println!("{}", ch);
     }
 }
