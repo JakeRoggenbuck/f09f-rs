@@ -1,3 +1,8 @@
+use std::fs;
+use std::env;
+use std::process;
+
+#[derive(Debug)]
 enum Tokens {
     // Types
     Char,
@@ -123,11 +128,21 @@ fn tokenize(part: &str) -> Token {
     return Token {part, token}
 }
 
-
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    if (args.len() == 1) {
+        eprintln!("Error: Please include a file");
+        process::exit(0);
+    }
+    let filename = &args[1];
+
+    println!("In file {}", filename);
+
     let input: [&str; 3] = ["Hello", "+", "int"];
 
     for item in input.iter() {
-        println!("{}", tokenize(item).part);
+        let current_token = tokenize(item);
+        println!("{:?}: {}", current_token.token, current_token.part);
     }
 }
