@@ -171,13 +171,29 @@ fn tokenize(part: &str) -> Token {
     return Token {part, token}
 }
 
-fn lexer(contents: String) {
-    for ch in contents.chars() {
-        if is_char_symbol(ch) || is_char_operator(ch) {
-            let tok = tokenize(&ch.to_string());
-            println!("{:?} {}", tok.token, tok.part);
-        }
+fn lexer(contents: String) -> Token {
+    let mut chars = contents.chars();
+    let mut current_part = String::new();
+    let mut index = 0;
+
+    let chars_len = contents.len();
+
+    let mut previous_char = chars.nth(0);
+    let mut current_char = chars.nth(1);
+    let mut next_char = chars.nth(2);
+
+    while index + 1 <= chars_len {
+        chars = contents.chars();
+
+        previous_char = current_char;
+        current_char = next_char;
+        next_char = chars.nth(index);
+
+        println!("{:?} {:?} {:?}", previous_char, current_char, next_char);
+
+        index += 1;
     }
+    return tokenize(&current_part);
 }
 
 fn main() {
