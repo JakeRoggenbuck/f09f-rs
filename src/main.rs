@@ -1,212 +1,255 @@
-use std::fs;
 use std::env;
+use std::fs;
 use std::process;
 
 #[derive(Debug)]
 enum Tokens {
-	// Types
-	Char,
-	Int,
-	Prec,
-	Bool,
-	String,
-	True,
-	False,
-	// Keywords
-	Function,
-	Return,
-	While,
-	Do,
-	For,
-	If,
-	Else,
-	// Operators
-	Plus,
-	Minus,
-	Star,
-	Slash,
-	Carrot,
-	Greater,
-	Less,
-	// Symbols
-	Assignment,
-	LeftParen,
-	RightParen,
-	LeftBrace,
-	RightBrace,
-	LeftBracket,
-	RightBracket,
-	Dot,
-	Comma,
-	Colon,
-	Semicolon,
-	// Other
-	Identifier,
-	Literal,
-	// Ignore
-	Space,
-	Tab,
-	Newline,
-	Comment,
-	None,
+    // Types
+    Char,
+    Int,
+    Prec,
+    Bool,
+    String,
+    True,
+    False,
+    // Keywords
+    Function,
+    Return,
+    While,
+    Do,
+    For,
+    If,
+    Else,
+    // Operators
+    Plus,
+    Minus,
+    Star,
+    Slash,
+    Carrot,
+    Greater,
+    Less,
+    // Symbols
+    Assignment,
+    LeftParen,
+    RightParen,
+    LeftBrace,
+    RightBrace,
+    LeftBracket,
+    RightBracket,
+    Dot,
+    Comma,
+    Colon,
+    Semicolon,
+    // Other
+    Identifier,
+    Literal,
+    // Ignore
+    Space,
+    Tab,
+    Newline,
+    Comment,
+    None,
 }
 
 struct Token {
-	part: String,
-	token: Tokens
+    part: String,
+    token: Tokens,
 }
 
 fn is_token_symbol(token: Tokens) -> bool {
-	match token {
-		Tokens::LeftBracket | Tokens::RightBracket  |
-		Tokens::LeftBrace   | Tokens::RightBrace	|
-		Tokens::LeftParen   | Tokens::RightParen	|
-		Tokens::Dot		 | Tokens::Comma		 |
-		Tokens::Colon	   | Tokens::Semicolon	 |
-		Tokens::Assignment => true,
-		_ => false,
-	}
+    match token {
+        Tokens::LeftBracket
+        | Tokens::RightBracket
+        | Tokens::LeftBrace
+        | Tokens::RightBrace
+        | Tokens::LeftParen
+        | Tokens::RightParen
+        | Tokens::Dot
+        | Tokens::Comma
+        | Tokens::Colon
+        | Tokens::Semicolon
+        | Tokens::Assignment => true,
+        _ => false,
+    }
 }
 
 fn is_token_operator(token: Tokens) -> bool {
-	match token {
-		Tokens::Plus	| Tokens::Minus	 |
-		Tokens::Star	| Tokens::Slash	 |
-		Tokens::Carrot  | Tokens::Greater   |
-		Tokens::Less => true,
-		_ => false,
-	}
+    match token {
+        Tokens::Plus
+        | Tokens::Minus
+        | Tokens::Star
+        | Tokens::Slash
+        | Tokens::Carrot
+        | Tokens::Greater
+        | Tokens::Less => true,
+        _ => false,
+    }
 }
 
 fn is_token_whitespace(token: Tokens) -> bool {
-	match token {
-		Tokens::Tab | Tokens::Space | Tokens::Newline => true,
-		_ => false,
-	}
+    match token {
+        Tokens::Tab | Tokens::Space | Tokens::Newline => true,
+        _ => false,
+    }
 }
 
 fn is_char_symbol(ch: char) -> bool {
-	match ch {
-		'[' | ']' | '{' | '}' |
-		'(' | ')' | '.' | ',' |
-		':' | ';' | '=' => true,
-		_ => false,
-	}
+    match ch {
+        '[' | ']' | '{' | '}' | '(' | ')' | '.' | ',' | ':' | ';' | '=' => true,
+        _ => false,
+    }
 }
 
-
 fn is_char_operator(ch: char) -> bool {
-	match ch {
-		'+' | '-' | '*' | '/' |
-		'^' | '>' | '<' => true,
-		_ => false,
-	}
+    match ch {
+        '+' | '-' | '*' | '/' | '^' | '>' | '<' => true,
+        _ => false,
+    }
 }
 
 fn is_char_whitespace(ch: char) -> bool {
-	match ch {
-		'\t' | ' ' | '\n' => true,
-		_ => false,
-	}
+    match ch {
+        '\t' | ' ' | '\n' => true,
+        _ => false,
+    }
 }
 
 fn is_char_numeric(ch: char) -> bool {
-	return ch.is_digit(10);
+    return ch.is_digit(10);
 }
 
-
 fn begins_token(prev: char, cur: char) -> bool {
-	if is_char_whitespace(prev) { return true; }
-	if is_char_whitespace(cur) { return false; }
-	return false;
+    if is_char_whitespace(prev) {
+        return true;
+    }
+    if is_char_whitespace(cur) {
+        return false;
+    }
+    return false;
 }
 
 fn ends_token(cur: char, next: char) -> bool {
-	if is_char_whitespace(cur) { return false; }
-	if is_char_whitespace(next) { return true; }
-	return false;
+    if is_char_whitespace(cur) {
+        return false;
+    }
+    if is_char_whitespace(next) {
+        return true;
+    }
+    return false;
 }
 
 fn tokenize(part: &str) -> Token {
-	let token = match part {
-		"{" => Tokens::LeftBrace,
-		"}" => Tokens::RightBrace,
-		"[" => Tokens::LeftBracket,
-		"]" => Tokens::RightBracket,
-		"(" => Tokens::LeftParen,
-		")" => Tokens::RightParen,
-		"." => Tokens::Dot,
-		"," => Tokens::Comma,
-		"=" => Tokens::Assignment,
+    let token = match part {
+        "{" => Tokens::LeftBrace,
+        "}" => Tokens::RightBrace,
+        "[" => Tokens::LeftBracket,
+        "]" => Tokens::RightBracket,
+        "(" => Tokens::LeftParen,
+        ")" => Tokens::RightParen,
+        "." => Tokens::Dot,
+        "," => Tokens::Comma,
+        "=" => Tokens::Assignment,
 
-		"int" => Tokens::Int,
-		"char" => Tokens::Char,
-		"bool" => Tokens::Bool,
-		"string" => Tokens::String,
-		"true" => Tokens::True,
-		"false" => Tokens::False,
+        "int" => Tokens::Int,
+        "char" => Tokens::Char,
+        "bool" => Tokens::Bool,
+        "string" => Tokens::String,
+        "true" => Tokens::True,
+        "false" => Tokens::False,
 
-		"fun" => Tokens::Function,
-		"return" => Tokens::Return,
-		"while" => Tokens::While,
-		"for" => Tokens::For,
-		"if" => Tokens::If,
-		"else" => Tokens::Else,
+        "fun" => Tokens::Function,
+        "return" => Tokens::Return,
+        "while" => Tokens::While,
+        "for" => Tokens::For,
+        "if" => Tokens::If,
+        "else" => Tokens::Else,
 
-		"+" => Tokens::Plus,
-		"-" => Tokens::Minus,
-		"*" => Tokens::Star,
-		"/" => Tokens::Slash,
-		"^" => Tokens::Carrot,
-		">" => Tokens::Greater,
-		"<" => Tokens::Less,
+        "+" => Tokens::Plus,
+        "-" => Tokens::Minus,
+        "*" => Tokens::Star,
+        "/" => Tokens::Slash,
+        "^" => Tokens::Carrot,
+        ">" => Tokens::Greater,
+        "<" => Tokens::Less,
 
-		" " => Tokens::Space,
-		"\t" => Tokens::Tab,
-		"\n" => Tokens::Newline,
-		_ => Tokens::Identifier,
-	};
+        " " => Tokens::Space,
+        "\t" => Tokens::Tab,
+        "\n" => Tokens::Newline,
+        _ => Tokens::Identifier,
+    };
 
-	let part = String::from(part);
-	return Token {part, token}
+    let part = String::from(part);
+    return Token { part, token };
 }
 
 fn lexer(contents: String) -> Token {
-	let mut chars = contents.chars();
-	let mut current_part = String::new();
-	let mut index = 0;
+    let mut chars = contents.chars();
+    let current_part = String::new();
+    let mut index = 0;
 
-	let chars_len = contents.len();
+    let chars_len = contents.len();
 
-	let mut previous_char = chars.nth(0);
-	let mut current_char = chars.nth(1);
-	let mut next_char = chars.nth(2);
+    let mut previous_char;
+    let mut current_char = chars.nth(1);
+    let mut next_char = chars.nth(2);
 
-	while index + 1 <= chars_len {
-		chars = contents.chars();
+    while index + 1 <= chars_len {
+        chars = contents.chars();
 
-		previous_char = current_char;
-		current_char = next_char;
-		next_char = chars.nth(index);
+        previous_char = current_char;
+        current_char = next_char;
+        next_char = chars.nth(index);
 
-		println!("{:?} {:?} {:?}", previous_char, current_char, next_char);
+        println!("{:?} {:?} {:?}", previous_char, current_char, next_char);
 
-		index += 1;
-	}
-	return tokenize(&current_part);
+        index += 1;
+    }
+    return tokenize(&current_part);
 }
 
 fn main() {
-	let args: Vec<String> = env::args().collect();
+    let args: Vec<String> = env::args().collect();
 
-	if args.len() == 1 {
-		eprintln!("Error: Please include a file");
-		process::exit(0);
-	}
-	let filename = &args[1];
+    if args.len() == 1 {
+        eprintln!("Error: Please include a file");
+        process::exit(0);
+    }
+    let filename = &args[1];
 
-	let contents = fs::read_to_string(filename)
-		.expect("Something went wrong reading the file");
+    let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
 
-	lexer(contents);
+    lexer(contents);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_token_symbol_test() {
+        assert!(is_token_symbol(Tokens::Dot) == true);
+        assert!(is_token_symbol(Tokens::LeftParen) == true);
+        assert!(is_token_symbol(Tokens::LeftBracket) == true);
+        assert!(is_token_symbol(Tokens::Assignment) == true);
+
+        assert!(is_token_symbol(Tokens::String) == false);
+        assert!(is_token_symbol(Tokens::Int) == false);
+        assert!(is_token_symbol(Tokens::Space) == false);
+        assert!(is_token_symbol(Tokens::While) == false);
+        assert!(is_token_symbol(Tokens::For) == false);
+    }
+
+    #[test]
+    fn is_token_operator_test() {
+        assert!(is_token_operator(Tokens::Plus) == true);
+        assert!(is_token_operator(Tokens::Minus) == true);
+        assert!(is_token_operator(Tokens::Slash) == true);
+        assert!(is_token_operator(Tokens::Star) == true);
+
+        assert!(is_token_operator(Tokens::String) == false);
+        assert!(is_token_operator(Tokens::Int) == false);
+        assert!(is_token_operator(Tokens::Dot) == false);
+        assert!(is_token_operator(Tokens::Comma) == false);
+        assert!(is_token_operator(Tokens::While) == false);
+    }
 }
