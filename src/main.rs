@@ -127,6 +127,14 @@ fn is_comment(ch: char) -> bool {
     return ch == '~';
 }
 
+fn is_double_quote(ch: char) -> bool {
+    return ch == '\"';
+}
+
+fn is_single_quote(ch: char) -> bool {
+    return ch == '\'';
+}
+
 fn begins_token(prev: char, cur: char) -> bool {
     if is_char_whitespace(cur) {
         return false;
@@ -144,9 +152,6 @@ fn begins_token(prev: char, cur: char) -> bool {
 }
 
 fn ends_token(cur: char, next: char) -> bool {
-    if is_char_whitespace(cur) {
-        return false;
-    }
     if is_char_whitespace(next) {
         return true;
     }
@@ -161,6 +166,9 @@ fn ends_token(cur: char, next: char) -> bool {
     }
     if is_char_operator(next) {
         return true;
+    }
+    if is_char_whitespace(cur) {
+        return false;
     }
     return false;
 }
@@ -229,7 +237,9 @@ fn tokenize(part: &str) -> Token {
     return Token { part, token };
 }
 
-fn lexer(contents: String) -> Vec<Token> {
+fn lexer(mut contents: String) -> Vec<Token> {
+    // Add after content buffer
+    contents = contents + "  ";
     let chars: Vec<_> = contents.chars().collect();
     let mut tokens: Vec<Token> = Vec::new();
 
@@ -412,6 +422,24 @@ mod tests {
     }
 
     #[test]
+    fn is_comment_test() {
+        assert!(is_comment('a') == false);
+        assert!(is_comment('~') == true);
+    }
+
+    #[test]
+    fn is_double_quote_test() {
+        assert!(is_double_quote('\'') == false);
+        assert!(is_double_quote('\"') == true);
+    }
+
+    #[test]
+    fn is_single_quote_test() {
+        assert!(is_single_quote('\'') == true);
+        assert!(is_single_quote('\"') == false);
+    }
+
+    #[test]
     fn tokenize_test() {
         assert_eq!(tokenize("for").token, Tokens::For);
         assert_eq!(tokenize("while").token, Tokens::While);
@@ -454,7 +482,7 @@ mod tests {
 
     #[test]
     fn lexer_test() {
-        check_symbol("function", &Tokens::Function);
+        check_symbol("fun", &Tokens::Function);
         check_symbol("for", &Tokens::For);
         check_symbol("while", &Tokens::While);
 
