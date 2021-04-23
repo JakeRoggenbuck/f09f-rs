@@ -2,7 +2,7 @@ use std::env;
 use std::fs;
 use std::process;
 
-#[derive(Debug)]
+#[derive(PartialEq, Debug)]
 enum Tokens {
     // Types
     Char,
@@ -318,5 +318,20 @@ mod tests {
         assert!(!is_char_numeric(']'));
         assert!(!is_char_numeric('+'));
         assert!(!is_char_numeric('n'));
+    }
+
+    #[test]
+    fn tokenize_test() {
+        assert!(tokenize("for").token == Tokens::For);
+        assert!(tokenize("while").token == Tokens::While);
+        assert!(tokenize("int").token == Tokens::Int);
+        assert!(tokenize("<").token == Tokens::Less);
+        assert!(tokenize(">").token == Tokens::Greater);
+
+        assert!(tokenize("forgot").token != Tokens::For);
+        assert!(tokenize("whil").token != Tokens::While);
+        assert!(tokenize("intent").token != Tokens::Int);
+        assert!(tokenize("this<").token != Tokens::Less);
+        assert!(tokenize("a>").token != Tokens::Greater);
     }
 }
