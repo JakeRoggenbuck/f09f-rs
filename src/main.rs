@@ -189,10 +189,8 @@ fn tokenize(part: &str) -> Token {
 fn lexer(contents: String) -> Token {
     let mut chars = contents.chars();
     let current_part = String::new();
-    let mut part_size = 0;
 
     let mut index = 0;
-
     let chars_len = contents.len();
 
     // These will be the chars passed into
