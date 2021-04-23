@@ -1,8 +1,4 @@
-# f09f-rs ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/f09f-rs/Rust?style=for-the-badge)
- pronounced fonf; is a statically typed language with simple but powerful syntax, and an interpreter written in rust 
-
-## Syntax
-### Vars
+# Vars
 ```
 int fact = 0;
 prec dec = 0.2;
@@ -10,7 +6,7 @@ string this = "a string";
 bool is_it = true;
 ```
 
-### Functions
+# Functions
 ```
 fun square(int n) returns int {
 	~ Return the square of n ~
@@ -18,7 +14,7 @@ fun square(int n) returns int {
 }
 ```
 
-### Control flow
+# Control flow
 ```
 if (n == 0) { n = 1; }
 
