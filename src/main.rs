@@ -51,7 +51,6 @@ enum Tokens {
     None,
 }
 
-
 #[derive(PartialEq, Debug)]
 struct Token {
     part: String,
@@ -373,17 +372,23 @@ mod tests {
     }
 
     fn check_lexer(part: &str, token: &Tokens) {
-        assert_eq!(lexer(String::from(part)), vec!(Token {part: String::from(part), token: *token}));
+        assert_eq!(
+            lexer(String::from(part)),
+            vec!(Token {
+                part: String::from(part),
+                token: *token
+            })
+        );
     }
 
-    fn make_symbol_array(part: &str) -> [String; 5]{
-        let first = part;
-        let second = part.to_owned() + &" ".to_owned();
-        let third = " ".to_owned() + &part.to_owned() + &" ".to_owned(); 
-        let fourth = "\n".to_owned() + &part.to_owned();
-        let fifth = " ".to_owned() + &part.to_owned() + &"   ".to_owned();
-
-        return [first.to_string(), second, third, fourth, fifth];
+    fn make_symbol_array(part: &str) -> [String; 5] {
+        return [
+            String::from(part),
+            part.to_owned() + &" ".to_owned(),
+            " ".to_owned() + &part.to_owned() + &" ".to_owned(),
+            "\n".to_owned() + &part.to_owned(),
+            " ".to_owned() + &part.to_owned() + &"   ".to_owned(),
+        ];
     }
 
     fn check_symbol(part: &str, token: &Tokens) {
@@ -402,6 +407,5 @@ mod tests {
         check_symbol(";", &Tokens::Semicolon);
         check_symbol("{", &Tokens::LeftBrace);
         check_symbol("+", &Tokens::Plus);
-
     }
 }
