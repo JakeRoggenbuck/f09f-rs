@@ -15,6 +15,7 @@ enum Tokens {
     // Keywords
     Function,
     Return,
+    Returns,
     While,
     Do,
     For,
@@ -42,7 +43,10 @@ enum Tokens {
     Semicolon,
     // Other
     Identifier,
-    Literal,
+    StringLiteral,
+    NumericLiteral,
+    SingleQuote,
+    DoubleQuote,
     // Ignore
     Space,
     Tab,
@@ -96,7 +100,7 @@ fn is_token_whitespace(token: Tokens) -> bool {
 
 fn is_char_symbol(ch: char) -> bool {
     match ch {
-        '[' | ']' | '{' | '}' | '(' | ')' | '.' | ',' | ':' | ';' | '=' => true,
+        '[' | ']' | '{' | '}' | '(' | ')' | '.' | ',' | ':' | ';' | '=' | '\'' | '\"' => true,
         _ => false,
     }
 }
@@ -117,6 +121,10 @@ fn is_char_whitespace(ch: char) -> bool {
 
 fn is_char_numeric(ch: char) -> bool {
     return ch.is_digit(10);
+}
+
+fn is_comment(ch: char) -> bool {
+    return ch == '~';
 }
 
 fn begins_token(prev: char, cur: char) -> bool {
@@ -148,11 +156,17 @@ fn ends_token(cur: char, next: char) -> bool {
     if is_char_symbol(next) {
         return true;
     }
+    if is_char_operator(cur) {
+        return true;
+    }
+    if is_char_operator(next) {
+        return true;
+    }
     return false;
 }
 
 fn tokenize(part: &str) -> Token {
-    let token = match part {
+    let mut token = match part {
         "{" => Tokens::LeftBrace,
         "}" => Tokens::RightBrace,
         "[" => Tokens::LeftBracket,
@@ -175,6 +189,7 @@ fn tokenize(part: &str) -> Token {
 
         "fun" => Tokens::Function,
         "return" => Tokens::Return,
+        "returns" => Tokens::Returns,
         "while" => Tokens::While,
         "do" => Tokens::Do,
         "for" => Tokens::For,
@@ -194,8 +209,21 @@ fn tokenize(part: &str) -> Token {
         "\n" => Tokens::Newline,
 
         "~" => Tokens::Comment,
+        "\'" => Tokens::SingleQuote,
+        "\"" => Tokens::DoubleQuote,
         _ => Tokens::Identifier,
     };
+
+    // Find what identifiers are actually numbers
+    if token == Tokens::Identifier {
+        for c in part.chars() {
+            if is_char_numeric(c) {
+                // Reassign them to be numbers
+                token = Tokens::NumericLiteral;
+                break;
+            }
+        }
+    }
 
     let part = String::from(part);
     return Token { part, token };
@@ -214,7 +242,29 @@ fn lexer(contents: String) -> Vec<Token> {
     // the begins_token and ends_token
     let (mut previous_char, mut current_char, mut next_char) = (' ', ' ', ' ');
 
+    let mut in_comment = false;
     while index + 1 <= chars_len {
+        if is_comment(current_char) {
+            if !in_comment {
+                in_comment = true;
+            } else if in_comment {
+                in_comment = false;
+                // TODO: Make function to add to index,
+                // and reset value of previous_char,
+                // current_char, next_char
+                index += 1;
+                previous_char = current_char;
+                current_char = next_char;
+                next_char = chars[index];
+            }
+        }
+        if in_comment {
+            index += 1;
+            previous_char = current_char;
+            current_char = next_char;
+            next_char = chars[index];
+            continue;
+        }
         if !is_char_whitespace(current_char) {
             current_part.push(current_char);
             if ends_token(current_char, next_char) {
