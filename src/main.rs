@@ -15,6 +15,7 @@ enum Tokens {
     // Keywords
     Function,
     Return,
+    Returns,
     While,
     Do,
     For,
@@ -42,7 +43,10 @@ enum Tokens {
     Semicolon,
     // Other
     Identifier,
-    Literal,
+    StringLiteral,
+    NumericLiteral,
+    SingleQuote,
+    DoubleQuote,
     // Ignore
     Space,
     Tab,
@@ -51,6 +55,7 @@ enum Tokens {
     None,
 }
 
+#[derive(PartialEq, Debug)]
 struct Token {
     part: String,
     token: Tokens,
@@ -95,7 +100,7 @@ fn is_token_whitespace(token: Tokens) -> bool {
 
 fn is_char_symbol(ch: char) -> bool {
     match ch {
-        '[' | ']' | '{' | '}' | '(' | ')' | '.' | ',' | ':' | ';' | '=' => true,
+        '[' | ']' | '{' | '}' | '(' | ')' | '.' | ',' | ':' | ';' | '=' | '\'' | '\"' => true,
         _ => false,
     }
 }
@@ -118,34 +123,58 @@ fn is_char_numeric(ch: char) -> bool {
     return ch.is_digit(10);
 }
 
+fn is_comment(ch: char) -> bool {
+    return ch == '~';
+}
+
+fn is_double_quote(ch: char) -> bool {
+    return ch == '\"';
+}
+
+fn is_single_quote(ch: char) -> bool {
+    return ch == '\'';
+}
+
 fn begins_token(prev: char, cur: char) -> bool {
-    if is_char_whitespace(prev) {
-        return true;
-    }
     if is_char_whitespace(cur) {
         return false;
     }
+    if is_char_whitespace(prev) {
+        return true;
+    }
     if is_char_symbol(cur) {
+        return true;
+    }
+    if is_char_symbol(prev) {
         return true;
     }
     return false;
 }
 
 fn ends_token(cur: char, next: char) -> bool {
-    if is_char_whitespace(cur) {
-        return false;
-    }
     if is_char_whitespace(next) {
         return true;
     }
     if is_char_symbol(cur) {
         return true;
     }
+    if is_char_symbol(next) {
+        return true;
+    }
+    if is_char_operator(cur) {
+        return true;
+    }
+    if is_char_operator(next) {
+        return true;
+    }
+    if is_char_whitespace(cur) {
+        return false;
+    }
     return false;
 }
 
 fn tokenize(part: &str) -> Token {
-    let token = match part {
+    let mut token = match part {
         "{" => Tokens::LeftBrace,
         "}" => Tokens::RightBrace,
         "[" => Tokens::LeftBracket,
@@ -168,6 +197,7 @@ fn tokenize(part: &str) -> Token {
 
         "fun" => Tokens::Function,
         "return" => Tokens::Return,
+        "returns" => Tokens::Returns,
         "while" => Tokens::While,
         "do" => Tokens::Do,
         "for" => Tokens::For,
@@ -185,14 +215,31 @@ fn tokenize(part: &str) -> Token {
         " " => Tokens::Space,
         "\t" => Tokens::Tab,
         "\n" => Tokens::Newline,
+
+        "~" => Tokens::Comment,
+        "\'" => Tokens::SingleQuote,
+        "\"" => Tokens::DoubleQuote,
         _ => Tokens::Identifier,
     };
+
+    // Find what identifiers are actually numbers
+    if token == Tokens::Identifier {
+        for c in part.chars() {
+            if is_char_numeric(c) {
+                // Reassign them to be numbers
+                token = Tokens::NumericLiteral;
+                break;
+            }
+        }
+    }
 
     let part = String::from(part);
     return Token { part, token };
 }
 
-fn lexer(contents: String) -> Vec<Token> {
+fn lexer(mut contents: String) -> Vec<Token> {
+    // Add after content buffer
+    contents = contents + "  ";
     let chars: Vec<_> = contents.chars().collect();
     let mut tokens: Vec<Token> = Vec::new();
 
@@ -203,19 +250,39 @@ fn lexer(contents: String) -> Vec<Token> {
 
     // These will be the chars passed into
     // the begins_token and ends_token
-    let mut previous_char = ' ';
-    let mut current_char = ' ';
-    let mut next_char = chars[0];
+    let (mut previous_char, mut current_char, mut next_char) = (' ', ' ', ' ');
 
+    let mut in_comment = false;
     while index + 1 <= chars_len {
+        if is_comment(current_char) {
+            if !in_comment {
+                in_comment = true;
+            } else if in_comment {
+                in_comment = false;
+                // TODO: Make function to add to index,
+                // and reset value of previous_char,
+                // current_char, next_char
+                index += 1;
+                previous_char = current_char;
+                current_char = next_char;
+                next_char = chars[index];
+            }
+        }
+        if in_comment {
+            index += 1;
+            previous_char = current_char;
+            current_char = next_char;
+            next_char = chars[index];
+            continue;
+        }
         if !is_char_whitespace(current_char) {
-            if !ends_token(current_char, next_char) {
-                current_part.push(current_char);
-            } else {
+            current_part.push(current_char);
+            if ends_token(current_char, next_char) {
                 tokens.push(tokenize(&current_part));
                 current_part = String::new();
             }
         }
+
         println!("{:?} {:?} {:?}", previous_char, current_char, next_char);
 
         // Shift location in contents
@@ -238,11 +305,12 @@ fn main() {
     }
     let filename = &args[1];
 
-    let contents =
-        fs::read_to_string(filename).expect("Something went wrong reading the file") + "  ";
+    let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
+
+    // Display tokens (not needed, verbose output)
     let tokens: Vec<Token> = lexer(contents);
     for tok in tokens.iter() {
-        println!("{}\n", tok.part);
+        println!("{:?}:\t\t{}", tok.token, tok.part);
     }
 }
 
@@ -356,17 +424,73 @@ mod tests {
     }
 
     #[test]
+    fn is_comment_test() {
+        assert!(is_comment('a') == false);
+        assert!(is_comment('~') == true);
+    }
+
+    #[test]
+    fn is_double_quote_test() {
+        assert!(is_double_quote('\'') == false);
+        assert!(is_double_quote('\"') == true);
+    }
+
+    #[test]
+    fn is_single_quote_test() {
+        assert!(is_single_quote('\'') == true);
+        assert!(is_single_quote('\"') == false);
+    }
+
+    #[test]
     fn tokenize_test() {
-        assert!(tokenize("for").token == Tokens::For);
-        assert!(tokenize("while").token == Tokens::While);
-        assert!(tokenize("int").token == Tokens::Int);
-        assert!(tokenize("<").token == Tokens::Less);
-        assert!(tokenize(">").token == Tokens::Greater);
+        assert_eq!(tokenize("for").token, Tokens::For);
+        assert_eq!(tokenize("while").token, Tokens::While);
+        assert_eq!(tokenize("int").token, Tokens::Int);
+        assert_eq!(tokenize("<").token, Tokens::Less);
+        assert_eq!(tokenize(">").token, Tokens::Greater);
 
         assert!(tokenize("forgot").token != Tokens::For);
         assert!(tokenize("whil").token != Tokens::While);
         assert!(tokenize("intent").token != Tokens::Int);
         assert!(tokenize("this<").token != Tokens::Less);
         assert!(tokenize("a>").token != Tokens::Greater);
+    }
+
+    fn check_lexer(original_part: &str, new_part: &str, token: &Tokens) {
+        assert_eq!(
+            lexer(String::from(new_part)),
+            vec!(Token {
+                part: String::from(original_part),
+                token: *token
+            })
+        );
+    }
+
+    fn make_symbol_array(part: &str) -> [String; 5] {
+        return [
+            String::from(part),
+            part.to_owned() + &" ".to_owned(),
+            " ".to_owned() + &part.to_owned() + &" ".to_owned(),
+            "\n".to_owned() + &part.to_owned(),
+            " ".to_owned() + &part.to_owned() + &"   ".to_owned(),
+        ];
+    }
+
+    fn check_symbol(part: &str, token: &Tokens) {
+        for i in make_symbol_array(part).iter() {
+            check_lexer(part, i, token);
+        }
+    }
+
+    #[test]
+    fn lexer_test() {
+        check_symbol("fun", &Tokens::Function);
+        check_symbol("for", &Tokens::For);
+        check_symbol("while", &Tokens::While);
+
+        check_symbol(".", &Tokens::Dot);
+        check_symbol(";", &Tokens::Semicolon);
+        check_symbol("{", &Tokens::LeftBrace);
+        check_symbol("+", &Tokens::Plus);
     }
 }
