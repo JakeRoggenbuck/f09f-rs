@@ -192,6 +192,8 @@ fn tokenize(part: &str) -> Token {
         " " => Tokens::Space,
         "\t" => Tokens::Tab,
         "\n" => Tokens::Newline,
+
+        "~" => Tokens::Comment,
         _ => Tokens::Identifier,
     };
 
@@ -210,12 +212,9 @@ fn lexer(contents: String) -> Vec<Token> {
 
     // These will be the chars passed into
     // the begins_token and ends_token
-    let mut previous_char = ' ';
-    let mut current_char = ' ';
-    let mut next_char = ' ';
+    let (mut previous_char, mut current_char, mut next_char) = (' ', ' ', ' ');
 
     while index + 1 <= chars_len {
-
         if !is_char_whitespace(current_char) {
             current_part.push(current_char);
             if ends_token(current_char, next_char) {
@@ -246,11 +245,10 @@ fn main() {
     }
     let filename = &args[1];
 
-    let contents =
-        fs::read_to_string(filename).expect("Something went wrong reading the file") + "   ";
+    let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
     let tokens: Vec<Token> = lexer(contents);
     for tok in tokens.iter() {
-        println!("{}\n", tok.part);
+        println!("{:?}:\t\t{}", tok.token, tok.part);
     }
 }
 
