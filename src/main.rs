@@ -120,13 +120,16 @@ fn is_char_numeric(ch: char) -> bool {
 }
 
 fn begins_token(prev: char, cur: char) -> bool {
-    if is_char_whitespace(prev) {
-        return true;
-    }
     if is_char_whitespace(cur) {
         return false;
     }
+    if is_char_whitespace(prev) {
+        return true;
+    }
     if is_char_symbol(cur) {
+        return true;
+    }
+    if is_char_symbol(prev) {
         return true;
     }
     return false;
@@ -140,6 +143,9 @@ fn ends_token(cur: char, next: char) -> bool {
         return true;
     }
     if is_char_symbol(cur) {
+        return true;
+    }
+    if is_char_symbol(next) {
         return true;
     }
     return false;
@@ -206,17 +212,18 @@ fn lexer(contents: String) -> Vec<Token> {
     // the begins_token and ends_token
     let mut previous_char = ' ';
     let mut current_char = ' ';
-    let mut next_char = chars[0];
+    let mut next_char = ' ';
 
     while index + 1 <= chars_len {
+
         if !is_char_whitespace(current_char) {
-            if !ends_token(current_char, next_char) {
-                current_part.push(current_char);
-            } else {
+            current_part.push(current_char);
+            if ends_token(current_char, next_char) {
                 tokens.push(tokenize(&current_part));
                 current_part = String::new();
             }
         }
+
         println!("{:?} {:?} {:?}", previous_char, current_char, next_char);
 
         // Shift location in contents
@@ -240,7 +247,7 @@ fn main() {
     let filename = &args[1];
 
     let contents =
-        fs::read_to_string(filename).expect("Something went wrong reading the file") + "  ";
+        fs::read_to_string(filename).expect("Something went wrong reading the file") + "   ";
     let tokens: Vec<Token> = lexer(contents);
     for tok in tokens.iter() {
         println!("{}\n", tok.part);
