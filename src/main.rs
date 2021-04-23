@@ -227,29 +227,96 @@ mod tests {
 
     #[test]
     fn is_token_symbol_test() {
-        assert!(is_token_symbol(Tokens::Dot) == true);
-        assert!(is_token_symbol(Tokens::LeftParen) == true);
-        assert!(is_token_symbol(Tokens::LeftBracket) == true);
-        assert!(is_token_symbol(Tokens::Assignment) == true);
+        assert!(is_token_symbol(Tokens::Dot));
+        assert!(is_token_symbol(Tokens::LeftParen));
+        assert!(is_token_symbol(Tokens::LeftBracket));
+        assert!(is_token_symbol(Tokens::Assignment));
 
-        assert!(is_token_symbol(Tokens::String) == false);
-        assert!(is_token_symbol(Tokens::Int) == false);
-        assert!(is_token_symbol(Tokens::Space) == false);
-        assert!(is_token_symbol(Tokens::While) == false);
-        assert!(is_token_symbol(Tokens::For) == false);
+        assert!(!is_token_symbol(Tokens::String));
+        assert!(!is_token_symbol(Tokens::Int));
+        assert!(!is_token_symbol(Tokens::Space));
+        assert!(!is_token_symbol(Tokens::While));
+        assert!(!is_token_symbol(Tokens::For));
     }
 
     #[test]
     fn is_token_operator_test() {
-        assert!(is_token_operator(Tokens::Plus) == true);
-        assert!(is_token_operator(Tokens::Minus) == true);
-        assert!(is_token_operator(Tokens::Slash) == true);
-        assert!(is_token_operator(Tokens::Star) == true);
+        assert!(is_token_operator(Tokens::Plus));
+        assert!(is_token_operator(Tokens::Minus));
+        assert!(is_token_operator(Tokens::Slash));
+        assert!(is_token_operator(Tokens::Star));
 
-        assert!(is_token_operator(Tokens::String) == false);
-        assert!(is_token_operator(Tokens::Int) == false);
-        assert!(is_token_operator(Tokens::Dot) == false);
-        assert!(is_token_operator(Tokens::Comma) == false);
-        assert!(is_token_operator(Tokens::While) == false);
+        assert!(!is_token_operator(Tokens::String));
+        assert!(!is_token_operator(Tokens::Int));
+        assert!(!is_token_operator(Tokens::Dot));
+        assert!(!is_token_operator(Tokens::Comma));
+        assert!(!is_token_operator(Tokens::While));
+    }
+
+    #[test]
+    fn is_token_whitespace_test() {
+        assert!(is_token_whitespace(Tokens::Space));
+        assert!(is_token_whitespace(Tokens::Tab));
+        assert!(is_token_whitespace(Tokens::Newline));
+
+        assert!(!is_token_whitespace(Tokens::String));
+        assert!(!is_token_whitespace(Tokens::Int));
+        assert!(!is_token_whitespace(Tokens::Dot));
+        assert!(!is_token_whitespace(Tokens::Comma));
+        assert!(!is_token_whitespace(Tokens::While));
+    }
+
+    #[test]
+    fn is_char_symbol_test() {
+        assert!(is_char_symbol('['));
+        assert!(is_char_symbol(']'));
+        assert!(is_char_symbol(')'));
+        assert!(is_char_symbol('('));
+        assert!(is_char_symbol('.'));
+        assert!(is_char_symbol(';'));
+
+        assert!(!is_char_symbol('a'));
+        assert!(!is_char_symbol('b'));
+        assert!(!is_char_symbol('7'));
+        assert!(!is_char_symbol('8'));
+    }
+
+    #[test]
+    fn is_char_operator_test() {
+        assert!(is_char_operator('+'));
+        assert!(is_char_operator('-'));
+        assert!(is_char_operator('*'));
+        assert!(is_char_operator('^'));
+
+        assert!(!is_char_operator('a'));
+        assert!(!is_char_operator('('));
+        assert!(!is_char_operator('7'));
+        assert!(!is_char_operator(']'));
+    }
+
+    #[test]
+    fn is_char_whitespace_test() {
+        assert!(is_char_whitespace(' '));
+        assert!(is_char_whitespace('\t'));
+        assert!(is_char_whitespace('\n'));
+
+        assert!(!is_char_whitespace('a'));
+        assert!(!is_char_whitespace('('));
+        assert!(!is_char_whitespace('7'));
+        assert!(!is_char_whitespace(']'));
+    }
+
+    #[test]
+    fn is_char_numeric_test() {
+        assert!(is_char_numeric('1'));
+        assert!(is_char_numeric('3'));
+        assert!(is_char_numeric('5'));
+        assert!(is_char_numeric('9'));
+
+        assert!(!is_char_numeric('a'));
+        assert!(!is_char_numeric('('));
+        assert!(!is_char_numeric(']'));
+        assert!(!is_char_numeric('+'));
+        assert!(!is_char_numeric('n'));
     }
 }
