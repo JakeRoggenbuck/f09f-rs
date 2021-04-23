@@ -2,7 +2,7 @@ use std::env;
 use std::fs;
 use std::process;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 enum Tokens {
     // Types
     Char,
@@ -189,10 +189,14 @@ fn tokenize(part: &str) -> Token {
 fn lexer(contents: String) -> Token {
     let mut chars = contents.chars();
     let current_part = String::new();
+    let mut part_size = 0;
+
     let mut index = 0;
 
     let chars_len = contents.len();
 
+    // These will be the chars passed into
+    // the begins_token and ends_token
     let mut previous_char;
     let mut current_char = chars.nth(1);
     let mut next_char = chars.nth(2);
@@ -200,6 +204,8 @@ fn lexer(contents: String) -> Token {
     while index + 1 <= chars_len {
         chars = contents.chars();
 
+        // Shift location in contents
+        // shift each character to the next
         previous_char = current_char;
         current_char = next_char;
         next_char = chars.nth(index);
@@ -231,97 +237,107 @@ mod tests {
 
     #[test]
     fn is_token_symbol_test() {
-        assert!(is_token_symbol(Tokens::Dot));
-        assert!(is_token_symbol(Tokens::LeftParen));
-        assert!(is_token_symbol(Tokens::LeftBracket));
-        assert!(is_token_symbol(Tokens::Assignment));
+        let array = [
+            Tokens::Dot,
+            Tokens::LeftParen,
+            Tokens::LeftBracket,
+            Tokens::Assignment,
+        ];
+        for i in array.iter() {
+            assert!(is_token_symbol(*i));
+        }
 
-        assert!(!is_token_symbol(Tokens::String));
-        assert!(!is_token_symbol(Tokens::Int));
-        assert!(!is_token_symbol(Tokens::Space));
-        assert!(!is_token_symbol(Tokens::While));
-        assert!(!is_token_symbol(Tokens::For));
+        let array = [
+            Tokens::String,
+            Tokens::Int,
+            Tokens::Space,
+            Tokens::While,
+            Tokens::For,
+        ];
+        for i in array.iter() {
+            assert!(!is_token_symbol(*i));
+        }
     }
 
     #[test]
     fn is_token_operator_test() {
-        assert!(is_token_operator(Tokens::Plus));
-        assert!(is_token_operator(Tokens::Minus));
-        assert!(is_token_operator(Tokens::Slash));
-        assert!(is_token_operator(Tokens::Star));
+        let array = [Tokens::Plus, Tokens::Minus, Tokens::Slash, Tokens::Star];
+        for i in array.iter() {
+            assert!(is_token_operator(*i));
+        }
 
-        assert!(!is_token_operator(Tokens::String));
-        assert!(!is_token_operator(Tokens::Int));
-        assert!(!is_token_operator(Tokens::Dot));
-        assert!(!is_token_operator(Tokens::Comma));
-        assert!(!is_token_operator(Tokens::While));
+        let array = [
+            Tokens::String,
+            Tokens::Int,
+            Tokens::Dot,
+            Tokens::Comma,
+            Tokens::While,
+        ];
+        for i in array.iter() {
+            assert!(!is_token_operator(*i));
+        }
     }
 
     #[test]
     fn is_token_whitespace_test() {
-        assert!(is_token_whitespace(Tokens::Space));
-        assert!(is_token_whitespace(Tokens::Tab));
-        assert!(is_token_whitespace(Tokens::Newline));
+        let array = [Tokens::Space, Tokens::Tab, Tokens::Newline];
+        for i in array.iter() {
+            assert!(is_token_whitespace(*i));
+        }
 
-        assert!(!is_token_whitespace(Tokens::String));
-        assert!(!is_token_whitespace(Tokens::Int));
-        assert!(!is_token_whitespace(Tokens::Dot));
-        assert!(!is_token_whitespace(Tokens::Comma));
-        assert!(!is_token_whitespace(Tokens::While));
+        let array = [
+            Tokens::String,
+            Tokens::Int,
+            Tokens::Dot,
+            Tokens::Comma,
+            Tokens::While,
+        ];
+        for i in array.iter() {
+            assert!(!is_token_operator(*i));
+        }
     }
 
     #[test]
     fn is_char_symbol_test() {
-        assert!(is_char_symbol('['));
-        assert!(is_char_symbol(']'));
-        assert!(is_char_symbol(')'));
-        assert!(is_char_symbol('('));
-        assert!(is_char_symbol('.'));
-        assert!(is_char_symbol(';'));
-
-        assert!(!is_char_symbol('a'));
-        assert!(!is_char_symbol('b'));
-        assert!(!is_char_symbol('7'));
-        assert!(!is_char_symbol('8'));
+        for i in ['[', ']', ')', '(', '.', ';'].iter() {
+            assert!(is_char_symbol(*i));
+        }
+        for i in ['a', 'b', '7', '8'].iter() {
+            assert!(!is_char_symbol(*i));
+        }
     }
 
     #[test]
     fn is_char_operator_test() {
-        assert!(is_char_operator('+'));
-        assert!(is_char_operator('-'));
-        assert!(is_char_operator('*'));
-        assert!(is_char_operator('^'));
+        for i in ['+', '-', '*', '^'].iter() {
+            assert!(is_char_operator(*i));
+        }
 
-        assert!(!is_char_operator('a'));
-        assert!(!is_char_operator('('));
-        assert!(!is_char_operator('7'));
-        assert!(!is_char_operator(']'));
+        for i in ['a', '(', '7', ']'].iter() {
+            assert!(!is_char_operator(*i));
+        }
     }
 
     #[test]
     fn is_char_whitespace_test() {
-        assert!(is_char_whitespace(' '));
-        assert!(is_char_whitespace('\t'));
-        assert!(is_char_whitespace('\n'));
+        for i in [' ', '\t', '\n'].iter() {
+            assert!(is_char_whitespace(*i));
+        }
 
-        assert!(!is_char_whitespace('a'));
-        assert!(!is_char_whitespace('('));
-        assert!(!is_char_whitespace('7'));
-        assert!(!is_char_whitespace(']'));
+        for i in ['a', '(', '7', ']'].iter() {
+            assert!(!is_char_whitespace(*i));
+        }
     }
 
     #[test]
     fn is_char_numeric_test() {
-        assert!(is_char_numeric('1'));
-        assert!(is_char_numeric('3'));
-        assert!(is_char_numeric('5'));
-        assert!(is_char_numeric('9'));
+        for i in ['1', '3', '5', '9'].iter() {
+            assert!(is_char_numeric(*i));
+        }
 
-        assert!(!is_char_numeric('a'));
-        assert!(!is_char_numeric('('));
-        assert!(!is_char_numeric(']'));
-        assert!(!is_char_numeric('+'));
-        assert!(!is_char_numeric('n'));
+        for i in ['a', '(', ']', '+', 'n'].iter() {
+            assert!(!is_char_numeric(*i));
+        }
     }
 
     #[test]
