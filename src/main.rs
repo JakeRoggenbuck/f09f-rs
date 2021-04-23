@@ -51,6 +51,8 @@ enum Tokens {
     None,
 }
 
+
+#[derive(PartialEq, Debug)]
 struct Token {
     part: String,
     token: Tokens,
@@ -357,16 +359,49 @@ mod tests {
 
     #[test]
     fn tokenize_test() {
-        assert!(tokenize("for").token == Tokens::For);
-        assert!(tokenize("while").token == Tokens::While);
-        assert!(tokenize("int").token == Tokens::Int);
-        assert!(tokenize("<").token == Tokens::Less);
-        assert!(tokenize(">").token == Tokens::Greater);
+        assert_eq!(tokenize("for").token, Tokens::For);
+        assert_eq!(tokenize("while").token, Tokens::While);
+        assert_eq!(tokenize("int").token, Tokens::Int);
+        assert_eq!(tokenize("<").token, Tokens::Less);
+        assert_eq!(tokenize(">").token, Tokens::Greater);
 
         assert!(tokenize("forgot").token != Tokens::For);
         assert!(tokenize("whil").token != Tokens::While);
         assert!(tokenize("intent").token != Tokens::Int);
         assert!(tokenize("this<").token != Tokens::Less);
         assert!(tokenize("a>").token != Tokens::Greater);
+    }
+
+    fn check_lexer(part: &str, token: &Tokens) {
+        assert_eq!(lexer(String::from(part)), vec!(Token {part: String::from(part), token: *token}));
+    }
+
+    fn make_symbol_array(part: &str) -> [String; 5]{
+        let first = part;
+        let second = part.to_owned() + &" ".to_owned();
+        let third = " ".to_owned() + &part.to_owned() + &" ".to_owned(); 
+        let fourth = "\n".to_owned() + &part.to_owned();
+        let fifth = " ".to_owned() + &part.to_owned() + &"   ".to_owned();
+
+        return [first.to_string(), second, third, fourth, fifth];
+    }
+
+    fn check_symbol(part: &str, token: &Tokens) {
+        for i in make_symbol_array(part).iter() {
+            check_lexer(i, token);
+        }
+    }
+
+    #[test]
+    fn lexer_test() {
+        check_symbol("function", &Tokens::Function);
+        check_symbol("for", &Tokens::For);
+        check_symbol("while", &Tokens::While);
+
+        check_symbol(".", &Tokens::Dot);
+        check_symbol(";", &Tokens::Semicolon);
+        check_symbol("{", &Tokens::LeftBrace);
+        check_symbol("+", &Tokens::Plus);
+
     }
 }
