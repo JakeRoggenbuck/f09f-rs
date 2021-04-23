@@ -306,6 +306,8 @@ fn main() {
     let filename = &args[1];
 
     let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
+
+    // Display tokens (not needed, verbose output)
     let tokens: Vec<Token> = lexer(contents);
     for tok in tokens.iter() {
         println!("{:?}:\t\t{}", tok.token, tok.part);
@@ -454,11 +456,11 @@ mod tests {
         assert!(tokenize("a>").token != Tokens::Greater);
     }
 
-    fn check_lexer(part: &str, token: &Tokens) {
+    fn check_lexer(original_part: &str, new_part: &str, token: &Tokens) {
         assert_eq!(
-            lexer(String::from(part)),
+            lexer(String::from(new_part)),
             vec!(Token {
-                part: String::from(part),
+                part: String::from(original_part),
                 token: *token
             })
         );
@@ -476,7 +478,7 @@ mod tests {
 
     fn check_symbol(part: &str, token: &Tokens) {
         for i in make_symbol_array(part).iter() {
-            check_lexer(i, token);
+            check_lexer(part, i, token);
         }
     }
 
