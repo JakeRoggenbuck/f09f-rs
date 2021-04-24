@@ -239,6 +239,7 @@ fn tokenize(part: &str) -> Token {
 
 trait Lex {
     fn next(&mut self, inc_before: bool);
+    fn check_comment(&mut self, in_comment: bool) -> bool;
     fn lexer(&mut self);
 }
 
@@ -267,6 +268,22 @@ impl Lex for Lexer {
         }
     }
 
+    fn check_comment(&mut self, mut in_comment: bool) -> bool {
+        if is_comment(self.current_char) {
+            if !in_comment {
+                in_comment = true;
+            } else if in_comment {
+                in_comment = false;
+                self.next(true);
+            }
+        }
+        if in_comment {
+            self.next(true);
+            return true;
+        }
+        return false;
+    }
+
     fn lexer(&mut self) {
         // Add after content buffer
         self.chars = self.contents.chars().collect();
@@ -275,26 +292,12 @@ impl Lex for Lexer {
         self.index = 0;
         let chars_len = self.contents.len();
 
-        // These will be the chars passed into
-        // the begins_token and ends_token
-        self.previous_char = ' ';
-        self.current_char = ' ';
-        self.next_char = ' ';
-
-        let mut in_comment = false;
+        let in_comment = false;
         while self.index + 1 <= chars_len {
-            if is_comment(self.current_char) {
-                if !in_comment {
-                    in_comment = true;
-                } else if in_comment {
-                    in_comment = false;
-                    self.next(true);
-                }
-            }
-            if in_comment {
-                self.next(true);
+            if self.check_comment(in_comment) {
                 continue;
             }
+
             if !is_char_whitespace(self.current_char) {
                 current_part.push(self.current_char);
                 if ends_token(self.current_char, self.next_char) {
