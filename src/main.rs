@@ -29,6 +29,8 @@ enum Tokens {
     Print,
     Input,
     Include,
+    Break,
+    Continue,
     // Operators
     Plus,
     Minus,
@@ -168,6 +170,8 @@ fn tokenize(part: &str) -> Token {
         "if" => Tokens::If,
         "else" => Tokens::Else,
         "include" => Tokens::Include,
+        "break" => Tokens::Break,
+        "continue" => Tokens::Continue,
 
         "+" => Tokens::Plus,
         "-" => Tokens::Minus,
