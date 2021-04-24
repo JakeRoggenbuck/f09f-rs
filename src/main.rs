@@ -12,6 +12,9 @@ enum Tokens {
     String,
     True,
     False,
+    Byte,
+    Static,
+    Class,
     // Keywords
     Function,
     Return,
@@ -19,8 +22,13 @@ enum Tokens {
     While,
     Do,
     For,
+    In,
     If,
     Else,
+    Assert,
+    Print,
+    Input,
+    Include,
     // Operators
     Plus,
     Minus,
@@ -41,6 +49,9 @@ enum Tokens {
     Comma,
     Colon,
     Semicolon,
+    Tag,
+    Question,
+    Reference,
     // Other
     Identifier,
     StringLiteral,
@@ -128,6 +139,9 @@ fn tokenize(part: &str) -> Token {
         "=" => Tokens::Assignment,
         ";" => Tokens::Semicolon,
         ":" => Tokens::Colon,
+        "#" => Tokens::Tag,
+        "&" => Tokens::Reference,
+        "?" => Tokens::Question,
 
         "int" => Tokens::Int,
         "prec" => Tokens::Prec,
@@ -136,6 +150,13 @@ fn tokenize(part: &str) -> Token {
         "string" => Tokens::String,
         "true" => Tokens::True,
         "false" => Tokens::False,
+        "byte" => Tokens::Byte,
+        "class" => Tokens::Class,
+        "static" => Tokens::Static,
+
+        "assert" => Tokens::Assert,
+        "print" => Tokens::Print,
+        "input" => Tokens::Input,
 
         "fun" => Tokens::Function,
         "return" => Tokens::Return,
@@ -143,8 +164,10 @@ fn tokenize(part: &str) -> Token {
         "while" => Tokens::While,
         "do" => Tokens::Do,
         "for" => Tokens::For,
+        "in" => Tokens::In,
         "if" => Tokens::If,
         "else" => Tokens::Else,
+        "include" => Tokens::Include,
 
         "+" => Tokens::Plus,
         "-" => Tokens::Minus,
