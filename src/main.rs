@@ -486,7 +486,7 @@ mod tests {
         assert!(tokenize("a>").token != Tokens::Greater);
     }
 
-    fn check_lexer(original_part: &str, new_part: &str, token: &Tokens) {
+    fn check_symbol_in_lexer(original_part: &str, new_part: &str, token: &Tokens) {
         let contents = String::from(new_part) + "   ";
         let mut lexer = Lexer {
             contents: contents,
@@ -508,6 +508,22 @@ mod tests {
         );
     }
 
+    fn check_lexer(new_part: &str, tokens: Vec<Token>) {
+        let contents = String::from(new_part) + "   ";
+        let mut lexer = Lexer {
+            contents: contents,
+            chars: Vec::new(),
+            index: 0,
+            previous_char: ' ',
+            current_char: ' ',
+            next_char: ' ',
+            tokens: Vec::new(),
+        };
+
+        lexer.lexer();
+        assert_eq!(lexer.tokens, tokens);
+    }
+
     fn make_symbol_array(part: &str) -> [String; 5] {
         return [
             String::from(part),
@@ -520,7 +536,7 @@ mod tests {
 
     fn check_symbol(part: &str, token: &Tokens) {
         for i in make_symbol_array(part).iter() {
-            check_lexer(part, i, token);
+            check_symbol_in_lexer(part, i, token);
         }
     }
 
@@ -534,5 +550,64 @@ mod tests {
         check_symbol(";", &Tokens::Semicolon);
         check_symbol("{", &Tokens::LeftBrace);
         check_symbol("+", &Tokens::Plus);
+
+        check_lexer(
+            "fun factorial",
+            vec![
+                Token {
+                    part: String::from("fun"),
+                    token: Tokens::Function,
+                },
+                Token {
+                    part: String::from("factorial"),
+                    token: Tokens::Identifier,
+                },
+            ],
+        );
+
+        check_lexer(
+            "return 0;",
+            vec![
+                Token {
+                    part: String::from("return"),
+                    token: Tokens::Return,
+                },
+                Token {
+                    part: String::from("0"),
+                    token: Tokens::NumericLiteral,
+                },
+                Token {
+                    part: String::from(";"),
+                    token: Tokens::Semicolon,
+                },
+            ],
+        );
+
+
+        check_lexer(
+            "int fact = 1;",
+            vec![
+                Token {
+                    part: String::from("int"),
+                    token: Tokens::Int,
+                },
+                Token {
+                    part: String::from("fact"),
+                    token: Tokens::Identifier,
+                },
+                Token {
+                    part: String::from("="),
+                    token: Tokens::Assignment,
+                },
+                Token {
+                    part: String::from("1"),
+                    token: Tokens::NumericLiteral,
+                },
+                Token {
+                    part: String::from(";"),
+                    token: Tokens::Semicolon,
+                },
+            ],
+        );
     }
 }
