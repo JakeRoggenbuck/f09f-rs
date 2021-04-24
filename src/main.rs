@@ -237,63 +237,71 @@ fn tokenize(part: &str) -> Token {
     return Token { part, token };
 }
 
-fn lexer(mut contents: String) -> Vec<Token> {
-    // Add after content buffer
-    contents = contents + "  ";
-    let chars: Vec<_> = contents.chars().collect();
-    let mut tokens: Vec<Token> = Vec::new();
 
-    let mut current_part = String::new();
+trait Lex {
+    fn next(&mut self);
+    fn lexer(&mut self);
+}
 
-    let mut index = 0;
-    let chars_len = contents.len();
+struct Lexer {
+    contents: String,
+    chars: Vec<char>,
+    index: usize,
+    previous_char: char,
+    current_char: char,
+    next_char: char,
+    tokens: Vec<Token>
+}
 
-    // These will be the chars passed into
-    // the begins_token and ends_token
-    let (mut previous_char, mut current_char, mut next_char) = (' ', ' ', ' ');
-
-    let mut in_comment = false;
-    while index + 1 <= chars_len {
-        if is_comment(current_char) {
-            if !in_comment {
-                in_comment = true;
-            } else if in_comment {
-                in_comment = false;
-                // TODO: Make function to add to index,
-                // and reset value of previous_char,
-                // current_char, next_char
-                index += 1;
-                previous_char = current_char;
-                current_char = next_char;
-                next_char = chars[index];
-            }
-        }
-        if in_comment {
-            index += 1;
-            previous_char = current_char;
-            current_char = next_char;
-            next_char = chars[index];
-            continue;
-        }
-        if !is_char_whitespace(current_char) {
-            current_part.push(current_char);
-            if ends_token(current_char, next_char) {
-                tokens.push(tokenize(&current_part));
-                current_part = String::new();
-            }
-        }
-
-        println!("{:?} {:?} {:?}", previous_char, current_char, next_char);
-
+impl Lex for Lexer {
+    fn next(&mut self) {
         // Shift location in contents
         // shift each character to the next
-        previous_char = current_char;
-        current_char = next_char;
-        next_char = chars[index];
-
-        index += 1;
+        self.index += 1;
+        self.previous_char = self.current_char;
+        self.current_char = self.next_char;
+        self.next_char = self.chars[self.index];
     }
-    return tokens;
+
+    fn lexer(&mut self) {
+        // Add after content buffer
+        self.chars = self.contents.chars().collect();
+        let mut current_part = String::new();
+
+        self.index = 0;
+        let chars_len = self.contents.len();
+
+        // These will be the chars passed into
+        // the begins_token and ends_token
+        self.previous_char = ' ';
+        self.current_char = ' ';
+        self.next_char = ' ';
+
+        let mut in_comment = false;
+        while self.index + 1 <= chars_len {
+            if is_comment(self.current_char) {
+                if !in_comment {
+                    in_comment = true;
+                } else if in_comment {
+                    in_comment = false;
+                    self.next();
+                }
+            }
+            if in_comment {
+                self.next();
+                continue;
+            }
+            if !is_char_whitespace(self.current_char) {
+                current_part.push(self.current_char);
+                if ends_token(self.current_char, self.next_char) {
+                    self.tokens.push(tokenize(&current_part));
+                    current_part = String::new();
+                }
+            }
+            println!("{:?} {:?} {:?}", self.previous_char, self.current_char, self.next_char);
+            self.next();
+        }
+    }
 }
 
 fn main() {
@@ -305,11 +313,20 @@ fn main() {
     }
     let filename = &args[1];
 
-    let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
+    let contents = fs::read_to_string(filename).expect("Something went wrong reading the file") + "   ";
 
     // Display tokens (not needed, verbose output)
-    let tokens: Vec<Token> = lexer(contents);
-    for tok in tokens.iter() {
+    let lexer = Lexer {
+        contents: contents,
+        chars: Vec::new(),
+        index: 0,
+        previous_char: ' ',
+        current_char: ' ',
+        next_char: ' ',
+        tokens: Vec::new(),
+    };
+
+    for tok in lexer.tokens.iter() {
         println!("{:?}:\t\t{}", tok.token, tok.part);
     }
 }
