@@ -60,45 +60,6 @@ struct Token {
     token: Tokens,
 }
 
-fn is_token_symbol(token: Tokens) -> bool {
-    match token {
-        Tokens::LeftBracket
-        | Tokens::RightBracket
-        | Tokens::LeftBrace
-        | Tokens::RightBrace
-        | Tokens::LeftParen
-        | Tokens::RightParen
-        | Tokens::Dot
-        | Tokens::Comma
-        | Tokens::Colon
-        | Tokens::Semicolon
-        | Tokens::Assignment 
-        | Tokens::SingleQuote
-        | Tokens::DoubleQuote => true,
-        _ => false,
-    }
-}
-
-fn is_token_operator(token: Tokens) -> bool {
-    match token {
-        Tokens::Plus
-        | Tokens::Minus
-        | Tokens::Star
-        | Tokens::Slash
-        | Tokens::Carrot
-        | Tokens::Greater
-        | Tokens::Less => true,
-        _ => false,
-    }
-}
-
-fn is_token_whitespace(token: Tokens) -> bool {
-    match token {
-        Tokens::Tab | Tokens::Space | Tokens::Newline => true,
-        _ => false,
-    }
-}
-
 fn is_char_symbol(ch: char) -> bool {
     match ch {
         '[' | ']' | '{' | '}' | '(' | ')' | '.' | ',' | ':' | ';' | '=' | '\'' | '\"' => true,
@@ -130,26 +91,6 @@ fn is_comment(ch: char) -> bool {
 
 fn is_double_quote(ch: char) -> bool {
     return ch == '\"';
-}
-
-fn is_single_quote(ch: char) -> bool {
-    return ch == '\'';
-}
-
-fn begins_token(prev: char, cur: char) -> bool {
-    if is_char_whitespace(cur) {
-        return false;
-    }
-    if is_char_whitespace(prev) {
-        return true;
-    }
-    if is_char_symbol(cur) {
-        return true;
-    }
-    if is_char_symbol(prev) {
-        return true;
-    }
-    return false;
 }
 
 fn ends_token(cur: char, next: char) -> bool {
@@ -254,18 +195,19 @@ struct Lexer {
     current_char: char,
     next_char: char,
     tokens: Vec<Token>,
+    verbose: bool,
 }
 
 impl Lex for Lexer {
     fn sync(&mut self) {
+        // Shift location in contents
+        // shift each character to the next
         self.previous_char = self.current_char;
         self.current_char = self.next_char;
         self.next_char = self.chars[self.index];
     }
 
     fn next(&mut self, inc_before: bool) {
-        // Shift location in contents
-        // shift each character to the next
         if inc_before {
             self.index += 1;
         }
@@ -308,14 +250,22 @@ impl Lex for Lexer {
         let chars_len = self.contents.len();
 
         while self.index + 1 <= chars_len {
+            // Skip over comments, then add a comment token
             if is_comment(self.current_char) {
                 let comment = self.check_comment();
-                self.tokens.push(Token {part: comment, token: Tokens::Comment});
+                self.tokens.push(Token {
+                    part: comment,
+                    token: Tokens::Comment,
+                });
             }
 
+            // Skip over strings, then add a string token
             if is_double_quote(self.current_char) {
                 let string = self.check_string();
-                self.tokens.push(Token {part: string, token: Tokens::StringLiteral});
+                self.tokens.push(Token {
+                    part: string,
+                    token: Tokens::StringLiteral,
+                });
             }
 
             if !is_char_whitespace(self.current_char) {
@@ -325,10 +275,12 @@ impl Lex for Lexer {
                     current_part = String::new();
                 }
             }
-            println!(
-                "{:?} {:?} {:?}",
-                self.previous_char, self.current_char, self.next_char
-            );
+            if self.verbose {
+                println!(
+                    "{:?} {:?} {:?}",
+                    self.previous_char, self.current_char, self.next_char
+                );
+            }
             self.next(false);
         }
     }
@@ -342,6 +294,7 @@ fn main() {
         process::exit(0);
     }
     let filename = &args[1];
+    let verbose = true;
 
     let contents =
         fs::read_to_string(filename).expect("Something went wrong reading the file") + "   ";
@@ -354,81 +307,21 @@ fn main() {
         current_char: ' ',
         next_char: ' ',
         tokens: Vec::new(),
+        verbose: verbose,
     };
 
     lexer.lexer();
 
-    // Display tokens (not needed, verbose output)
-    for tok in lexer.tokens.iter() {
-        println!("{:?}:\t\t{}", tok.token, tok.part);
+    if verbose {
+        for tok in lexer.tokens.iter() {
+            println!("{:?}:\t\t{}", tok.token, tok.part);
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn is_token_symbol_test() {
-        let array = [
-            Tokens::Dot,
-            Tokens::LeftParen,
-            Tokens::LeftBracket,
-            Tokens::Assignment,
-        ];
-        for i in array.iter() {
-            assert!(is_token_symbol(*i));
-        }
-
-        let array = [
-            Tokens::String,
-            Tokens::Int,
-            Tokens::Space,
-            Tokens::While,
-            Tokens::For,
-        ];
-        for i in array.iter() {
-            assert!(!is_token_symbol(*i));
-        }
-    }
-
-    #[test]
-    fn is_token_operator_test() {
-        let array = [Tokens::Plus, Tokens::Minus, Tokens::Slash, Tokens::Star];
-        for i in array.iter() {
-            assert!(is_token_operator(*i));
-        }
-
-        let array = [
-            Tokens::String,
-            Tokens::Int,
-            Tokens::Dot,
-            Tokens::Comma,
-            Tokens::While,
-        ];
-        for i in array.iter() {
-            assert!(!is_token_operator(*i));
-        }
-    }
-
-    #[test]
-    fn is_token_whitespace_test() {
-        let array = [Tokens::Space, Tokens::Tab, Tokens::Newline];
-        for i in array.iter() {
-            assert!(is_token_whitespace(*i));
-        }
-
-        let array = [
-            Tokens::String,
-            Tokens::Int,
-            Tokens::Dot,
-            Tokens::Comma,
-            Tokens::While,
-        ];
-        for i in array.iter() {
-            assert!(!is_token_operator(*i));
-        }
-    }
 
     #[test]
     fn is_char_symbol_test() {
@@ -486,12 +379,6 @@ mod tests {
     }
 
     #[test]
-    fn is_single_quote_test() {
-        assert!(is_single_quote('\'') == true);
-        assert!(is_single_quote('\"') == false);
-    }
-
-    #[test]
     fn tokenize_test() {
         assert_eq!(tokenize("for").token, Tokens::For);
         assert_eq!(tokenize("while").token, Tokens::While);
@@ -516,6 +403,7 @@ mod tests {
             current_char: ' ',
             next_char: ' ',
             tokens: Vec::new(),
+            verbose: false,
         };
 
         lexer.lexer();
@@ -538,6 +426,7 @@ mod tests {
             current_char: ' ',
             next_char: ' ',
             tokens: Vec::new(),
+            verbose: false,
         };
 
         lexer.lexer();
@@ -602,7 +491,6 @@ mod tests {
                 },
             ],
         );
-
 
         check_lexer(
             "int fact = 1;",
