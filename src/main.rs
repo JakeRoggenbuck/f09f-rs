@@ -289,12 +289,20 @@ impl Lex for Lexer {
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() == 1 {
+    if args.len() <= 1 {
         eprintln!("Error: Please include a file");
         process::exit(0);
     }
+
     let filename = &args[1];
-    let verbose = true;
+    let mut verbose = false;
+    if args.len() >= 2 {
+        for arg in 2..args.len() {
+            if args[arg] == "-v" {
+                verbose = true;
+            }
+        }
+    }
 
     let contents =
         fs::read_to_string(filename).expect("Something went wrong reading the file") + "   ";
