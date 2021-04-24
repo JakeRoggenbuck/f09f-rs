@@ -659,5 +659,31 @@ mod tests {
                 },
             ],
         );
+
+        check_lexer(
+            "string name = \"Jake\";",
+            vec![
+                Token {
+                    part: String::from("string"),
+                    token: Tokens::String,
+                },
+                Token {
+                    part: String::from("name"),
+                    token: Tokens::Identifier,
+                },
+                Token {
+                    part: String::from("="),
+                    token: Tokens::Assignment,
+                },
+                Token {
+                    part: String::from("\"Jake\""),
+                    token: Tokens::StringLiteral,
+                },
+                Token {
+                    part: String::from(";"),
+                    token: Tokens::Semicolon,
+                },
+            ],
+        );
     }
 }
