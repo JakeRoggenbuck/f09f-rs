@@ -240,9 +240,10 @@ fn tokenize(part: &str) -> Token {
 }
 
 trait Lex {
+    fn sync(&mut self);
     fn next(&mut self, inc_before: bool);
     fn check_comment(&mut self) -> String;
-    fn check_string(&mut self);
+    fn check_string(&mut self) -> String;
     fn lexer(&mut self);
 }
 
@@ -257,25 +258,26 @@ struct Lexer {
 }
 
 impl Lex for Lexer {
+    fn sync(&mut self) {
+        self.previous_char = self.current_char;
+        self.current_char = self.next_char;
+        self.next_char = self.chars[self.index];
+    }
+
     fn next(&mut self, inc_before: bool) {
         // Shift location in contents
         // shift each character to the next
         if inc_before {
             self.index += 1;
         }
-        self.previous_char = self.current_char;
-        self.current_char = self.next_char;
-        self.next_char = self.chars[self.index];
+        self.sync();
         if !inc_before {
             self.index += 1;
         }
     }
 
     fn check_comment(&mut self) -> String {
-        self.previous_char = self.current_char;
-        self.current_char = self.next_char;
-        self.next_char = self.chars[self.index];
-
+        self.sync();
         let mut comment = String::new();
         while !is_comment(self.current_char) {
             comment.push(self.current_char);
@@ -286,11 +288,16 @@ impl Lex for Lexer {
         return comment;
     }
 
-    fn check_string(&mut self) {
-        self.next(true);
+    fn check_string(&mut self) -> String {
+        self.sync();
+        let mut string = String::new();
         while !is_double_quote(self.current_char) {
+            string.push(self.current_char);
             self.next(true);
         }
+        self.next(true);
+        string = String::from("\"") + &string + "\"";
+        return string;
     }
 
     fn lexer(&mut self) {
@@ -305,6 +312,11 @@ impl Lex for Lexer {
             if is_comment(self.current_char) {
                 let comment = self.check_comment();
                 self.tokens.push(Token {part: comment, token: Tokens::Comment});
+            }
+
+            if is_double_quote(self.current_char) {
+                let string = self.check_string();
+                self.tokens.push(Token {part: string, token: Tokens::StringLiteral});
             }
 
             if !is_char_whitespace(self.current_char) {
