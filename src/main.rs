@@ -73,7 +73,9 @@ fn is_token_symbol(token: Tokens) -> bool {
         | Tokens::Comma
         | Tokens::Colon
         | Tokens::Semicolon
-        | Tokens::Assignment => true,
+        | Tokens::Assignment 
+        | Tokens::SingleQuote
+        | Tokens::DoubleQuote => true,
         _ => false,
     }
 }
@@ -239,7 +241,8 @@ fn tokenize(part: &str) -> Token {
 
 trait Lex {
     fn next(&mut self, inc_before: bool);
-    fn check_comment(&mut self, in_comment: bool) -> bool;
+    fn check_comment(&mut self) -> String;
+    fn check_string(&mut self);
     fn lexer(&mut self);
 }
 
@@ -268,20 +271,26 @@ impl Lex for Lexer {
         }
     }
 
-    fn check_comment(&mut self, mut in_comment: bool) -> bool {
-        if is_comment(self.current_char) {
-            if !in_comment {
-                in_comment = true;
-            } else if in_comment {
-                in_comment = false;
-                self.next(true);
-            }
-        }
-        if in_comment {
+    fn check_comment(&mut self) -> String {
+        self.previous_char = self.current_char;
+        self.current_char = self.next_char;
+        self.next_char = self.chars[self.index];
+
+        let mut comment = String::new();
+        while !is_comment(self.current_char) {
+            comment.push(self.current_char);
             self.next(true);
-            return true;
         }
-        return false;
+        self.next(true);
+        comment = String::from("~") + &comment + "~";
+        return comment;
+    }
+
+    fn check_string(&mut self) {
+        self.next(true);
+        while !is_double_quote(self.current_char) {
+            self.next(true);
+        }
     }
 
     fn lexer(&mut self) {
@@ -292,10 +301,10 @@ impl Lex for Lexer {
         self.index = 0;
         let chars_len = self.contents.len();
 
-        let in_comment = false;
         while self.index + 1 <= chars_len {
-            if self.check_comment(in_comment) {
-                continue;
+            if is_comment(self.current_char) {
+                let comment = self.check_comment();
+                self.tokens.push(Token {part: comment, token: Tokens::Comment});
             }
 
             if !is_char_whitespace(self.current_char) {
