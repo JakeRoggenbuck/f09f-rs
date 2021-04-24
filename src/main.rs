@@ -52,7 +52,6 @@ enum Tokens {
     Tab,
     Newline,
     Comment,
-    None,
 }
 
 #[derive(PartialEq, Debug)]
@@ -627,6 +626,36 @@ mod tests {
                 Token {
                     part: String::from(";"),
                     token: Tokens::Semicolon,
+                },
+            ],
+        );
+
+        check_lexer(
+            "int x = 0; ~ Starts at zero ~",
+            vec![
+                Token {
+                    part: String::from("int"),
+                    token: Tokens::Int,
+                },
+                Token {
+                    part: String::from("x"),
+                    token: Tokens::Identifier,
+                },
+                Token {
+                    part: String::from("="),
+                    token: Tokens::Assignment,
+                },
+                Token {
+                    part: String::from("0"),
+                    token: Tokens::NumericLiteral,
+                },
+                Token {
+                    part: String::from(";"),
+                    token: Tokens::Semicolon,
+                },
+                Token {
+                    part: String::from("~ Starts at zero ~"),
+                    token: Tokens::Comment,
                 },
             ],
         );
