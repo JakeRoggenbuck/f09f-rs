@@ -237,9 +237,8 @@ fn tokenize(part: &str) -> Token {
     return Token { part, token };
 }
 
-
 trait Lex {
-    fn next(&mut self);
+    fn next(&mut self, inc_before: bool);
     fn lexer(&mut self);
 }
 
@@ -250,17 +249,22 @@ struct Lexer {
     previous_char: char,
     current_char: char,
     next_char: char,
-    tokens: Vec<Token>
+    tokens: Vec<Token>,
 }
 
 impl Lex for Lexer {
-    fn next(&mut self) {
+    fn next(&mut self, inc_before: bool) {
         // Shift location in contents
         // shift each character to the next
-        self.index += 1;
+        if inc_before {
+            self.index += 1;
+        }
         self.previous_char = self.current_char;
         self.current_char = self.next_char;
         self.next_char = self.chars[self.index];
+        if !inc_before {
+            self.index += 1;
+        }
     }
 
     fn lexer(&mut self) {
@@ -284,11 +288,11 @@ impl Lex for Lexer {
                     in_comment = true;
                 } else if in_comment {
                     in_comment = false;
-                    self.next();
+                    self.next(true);
                 }
             }
             if in_comment {
-                self.next();
+                self.next(true);
                 continue;
             }
             if !is_char_whitespace(self.current_char) {
@@ -298,8 +302,11 @@ impl Lex for Lexer {
                     current_part = String::new();
                 }
             }
-            println!("{:?} {:?} {:?}", self.previous_char, self.current_char, self.next_char);
-            self.next();
+            println!(
+                "{:?} {:?} {:?}",
+                self.previous_char, self.current_char, self.next_char
+            );
+            self.next(false);
         }
     }
 }
@@ -313,10 +320,10 @@ fn main() {
     }
     let filename = &args[1];
 
-    let contents = fs::read_to_string(filename).expect("Something went wrong reading the file") + "   ";
+    let contents =
+        fs::read_to_string(filename).expect("Something went wrong reading the file") + "   ";
 
-    // Display tokens (not needed, verbose output)
-    let lexer = Lexer {
+    let mut lexer = Lexer {
         contents: contents,
         chars: Vec::new(),
         index: 0,
@@ -326,6 +333,9 @@ fn main() {
         tokens: Vec::new(),
     };
 
+    lexer.lexer();
+
+    // Display tokens (not needed, verbose output)
     for tok in lexer.tokens.iter() {
         println!("{:?}:\t\t{}", tok.token, tok.part);
     }
@@ -474,8 +484,20 @@ mod tests {
     }
 
     fn check_lexer(original_part: &str, new_part: &str, token: &Tokens) {
+        let contents = String::from(new_part) + "   ";
+        let mut lexer = Lexer {
+            contents: contents,
+            chars: Vec::new(),
+            index: 0,
+            previous_char: ' ',
+            current_char: ' ',
+            next_char: ' ',
+            tokens: Vec::new(),
+        };
+
+        lexer.lexer();
         assert_eq!(
-            lexer(String::from(new_part)),
+            lexer.tokens,
             vec!(Token {
                 part: String::from(original_part),
                 token: *token
