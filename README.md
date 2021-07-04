@@ -3,7 +3,7 @@
 
 ## Syntax
 ### Vars
-```c++
+```rb
 int fact = 0;
 prec dec = 0.2;
 string this = "a string";
@@ -11,7 +11,7 @@ bool is_it = true;
 ```
 
 ### Functions
-```c++
+```rb
 fun square(int n) returns int {
 	~ Return the square of n ~
 	return n ^ n;
@@ -19,7 +19,7 @@ fun square(int n) returns int {
 ```
 
 ### Control flow
-```c++
+```rb
 if (n == 0) { n = 1; }
 
 if (this and not that) {
