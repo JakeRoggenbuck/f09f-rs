@@ -1,4 +1,4 @@
-use super::{Tokens, Token};
+use super::{Token, Tokens};
 
 fn is_char_symbol(ch: char) -> bool {
     match ch {
