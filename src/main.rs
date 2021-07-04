@@ -5,10 +5,12 @@ use std::process;
 use lexer::{Lex, Lexer};
 use tokenizer::{ends_token, is_char_whitespace, is_comment, is_double_quote, tokenize};
 use tokens::Tokens;
+use utils::horizontal_space;
 
 pub mod lexer;
 pub mod tokenizer;
 pub mod tokens;
+pub mod utils;
 
 #[derive(PartialEq, Debug)]
 pub struct Token {
@@ -52,7 +54,8 @@ fn main() {
 
     if verbose {
         for tok in lexer.tokens.iter() {
-            println!("{:?}:\t\t{}", tok.token, tok.part);
+            let token_length: usize = format!("{:?}", tok.token).len();
+            println!("{:?}:{}{}", tok.token, horizontal_space(20 - token_length, ' '), tok.part);
         }
     }
 }
