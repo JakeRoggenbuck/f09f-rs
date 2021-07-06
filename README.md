@@ -3,7 +3,8 @@
 
 # Install
 ```
-cargo install --path .
+git clone https://github.com/JakeRoggenbuck/f09f-rs
+cargo install --path f09f-rs
 ```
 
 # Usage
