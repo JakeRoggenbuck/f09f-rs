@@ -9,5 +9,5 @@ edition = "2018"
 [dependencies]
 
 [[bin]]
-name = "rust-lang"
+name = "f09f-rs"
 path = "src/main.rs"
