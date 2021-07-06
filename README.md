@@ -1,6 +1,17 @@
 # f09f-rs ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/f09f-rs/Rust?style=for-the-badge)
  pronounced fonf; is a statically typed language with simple but powerful syntax, and an interpreter written in rust 
 
+# Install
+```
+git clone https://github.com/JakeRoggenbuck/f09f-rs
+cargo install --path f09f-rs
+```
+
+# Usage
+| Shorthand | Flag        | Description                                                |
+|-----------|-------------|------------------------------------------------------------|
+| -v        |             | Verbose output of tokens                                   |
+
 ## Syntax
 ### Vars
 ```rb
