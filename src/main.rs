@@ -55,7 +55,12 @@ fn main() {
     if verbose {
         for tok in lexer.tokens.iter() {
             let token_length: usize = format!("{:?}", tok.token).len();
-            println!("{:?}:{}{}", tok.token, horizontal_space(20 - token_length, ' '), tok.part);
+            println!(
+                "{:?}:{}{}",
+                tok.token,
+                horizontal_space(20 - token_length, ' '),
+                tok.part
+            );
         }
     }
 }
